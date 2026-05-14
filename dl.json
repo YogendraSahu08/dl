@@ -1,0 +1,273 @@
+{
+  "cnn_data": {
+    "prefix": "#$%data",
+    "body": [
+      "import numpy as np",
+      "",
+      "# 6000 images",
+      "X = np.random.rand(6000, 1, 32, 32)",
+      "",
+      "# labels (0–5)",
+      "y = np.random.randint(0, 6, 6000)",
+      "",
+      "# one-hot encoding",
+      "Y = np.zeros((6000, 6))",
+      "Y[np.arange(6000), y] = 1"
+    ],
+    "description": "Generate CNN dataset"
+  },
+
+  "cnn_imports": {
+    "prefix": "#$%import",
+    "body": [
+      "import torch",
+      "import torch.nn as nn",
+      "import torch.nn.functional as F"
+    ],
+    "description": "PyTorch imports"
+  },
+
+  "cnn_model": {
+    "prefix": "#$%model",
+    "body": [
+      "class CNN(nn.Module):",
+      "    def __init__(self):",
+      "        super().__init__()",
+      "",
+      "        self.conv1 = nn.Conv2d(1, 16, 3, stride=1, padding=1)",
+      "        self.conv2 = nn.Conv2d(16, 32, 3, stride=1, padding=1)",
+      "",
+      "        self.pool = nn.MaxPool2d(2, 2)",
+      "",
+      "        self.fc = nn.Linear(32 * 8 * 8, 6)",
+      "",
+      "    def forward(self, x):",
+      "        x = self.pool(F.relu(self.conv1(x)))",
+      "        x = self.pool(F.relu(self.conv2(x)))",
+      "",
+      "        x = x.view(x.size(0), -1)",
+      "",
+      "        x = self.fc(x)",
+      "",
+      "        return F.softmax(x, dim=1)"
+    ],
+    "description": "CNN model architecture"
+  },
+
+  "cnn_create": {
+    "prefix": "#$%create",
+    "body": [
+      "model = CNN()",
+      "",
+      "criterion = nn.CrossEntropyLoss()",
+      "optimizer = torch.optim.SGD(model.parameters(), lr=0.005)"
+    ],
+    "description": "Create CNN model and optimizer"
+  },
+
+  "cnn_tensor": {
+    "prefix": "#$%tensor",
+    "body": [
+      "# Convert to tensor",
+      "X_tensor = torch.tensor(X, dtype=torch.float32)",
+      "y_tensor = torch.tensor(y, dtype=torch.long)"
+    ],
+    "description": "Convert NumPy arrays to tensors"
+  },
+
+  "cnn_train": {
+    "prefix": "#$%train",
+    "body": [
+      "epochs = 10",
+      "",
+      "for epoch in range(epochs):",
+      "    optimizer.zero_grad()",
+      "",
+      "    outputs = model(X_tensor)",
+      "",
+      "    loss = criterion(outputs, y_tensor)",
+      "",
+      "    loss.backward()",
+      "    optimizer.step()",
+      "",
+      "    print(f\"Epoch {epoch+1}, Loss: {loss.item()}\")"
+    ],
+    "description": "Train CNN model"
+  },
+  "loadmnist": {
+    "prefix": "!~@load",
+    "body": [
+      "import tensorflow as tf",
+      "from tensorflow.keras.datasets import mnist",
+      "from tensorflow.keras.utils import to_categorical",
+      "",
+      "# Load dataset",
+      "(X_train, y_train), (X_test, y_test) = mnist.load_data()",
+      "",
+      "# Normalize",
+      "X_train = X_train / 255.0",
+      "X_test = X_test / 255.0",
+      "",
+      "# Flatten",
+      "X_train = X_train.reshape(-1, 784)",
+      "X_test = X_test.reshape(-1, 784)",
+      "",
+      "# One-hot encoding",
+      "y_train = to_categorical(y_train, 10)",
+      "y_test = to_categorical(y_test, 10)"
+    ],
+    "description": "Load and preprocess MNIST dataset"
+  },
+
+  "buildmodel": {
+    "prefix": "!~@model",
+    "body": [
+      "from tensorflow.keras.models import Sequential",
+      "from tensorflow.keras.layers import Dense",
+      "",
+      "model = Sequential([",
+      "    Dense(128, activation='relu', input_shape=(784,)),",
+      "    Dense(64, activation='relu'),",
+      "    Dense(10, activation='softmax')",
+      "])"
+    ],
+    "description": "Build ANN model"
+  },
+
+  "compilemodel": {
+    "prefix": "!~@compile",
+    "body": [
+      "model.compile(",
+      "    optimizer='adam',",
+      "    loss='categorical_crossentropy',",
+      "    metrics=['accuracy']",
+      ")"
+    ],
+    "description": "Compile TensorFlow model"
+  },
+
+  "trainmodel": {
+    "prefix": "!~@train",
+    "body": [
+      "history = model.fit(",
+      "    X_train, y_train,",
+      "    epochs=10,",
+      "    batch_size=32,",
+      "    validation_split=0.2",
+      ")"
+    ],
+    "description": "Train ANN model"
+  },
+
+  "evaluatemodel": {
+    "prefix": "!~@eval",
+    "body": [
+      "test_loss, test_acc = model.evaluate(X_test, y_test)",
+      "",
+      "print(\"Test Accuracy:\", test_acc)",
+      "print(\"Test Loss:\", test_loss)"
+    ],
+    "description": "Evaluate model performance"
+  },
+
+  "hyperparameter": {
+    "prefix": "!~@hyper",
+    "body": [
+      "from tensorflow.keras.optimizers import Adam",
+      "",
+      "learning_rates = [0.01, 0.001, 0.0001]",
+      "batch_sizes = [32, 64, 128]",
+      "",
+      "for lr in learning_rates:",
+      "    for bs in batch_sizes:",
+      "        model.compile(",
+      "            optimizer=Adam(learning_rate=lr),",
+      "            loss='categorical_crossentropy',",
+      "            metrics=['accuracy']",
+      "        )",
+      "",
+      "        print(f\"\\\\nTraining with LR={lr}, Batch Size={bs}\")",
+      "        model.fit(X_train, y_train, epochs=5, batch_size=bs, verbose=0)",
+      "",
+      "        loss, acc = model.evaluate(X_test, y_test, verbose=0)",
+      "        print(\"Accuracy:\", acc)"
+    ],
+    "description": "Hyperparameter tuning snippet"
+  },
+
+  "accuracygraph": {
+    "prefix": "!~@acc",
+    "body": [
+      "import matplotlib.pyplot as plt",
+      "",
+      "plt.plot(history.history['accuracy'])",
+      "plt.plot(history.history['val_accuracy'])",
+      "plt.title('Model Accuracy')",
+      "plt.xlabel('Epoch')",
+      "plt.ylabel('Accuracy')",
+      "plt.legend(['Train', 'Validation'])",
+      "plt.show()"
+    ],
+    "description": "Plot accuracy graph"
+  },
+
+  "lossgraph": {
+    "prefix": "!~@loss",
+    "body": [
+      "import matplotlib.pyplot as plt",
+      "",
+      "plt.plot(history.history['loss'])",
+      "plt.plot(history.history['val_loss'])",
+      "plt.title('Model Loss')",
+      "plt.xlabel('Epoch')",
+      "plt.ylabel('Loss')",
+      "plt.legend(['Train', 'Validation'])",
+      "plt.show()"
+    ],
+    "description": "Plot loss graph"
+  },
+  "visualprediction": {
+    "prefix": "!~@visual",
+    "body": [
+      "import numpy as np",
+      "",
+      "for i in range(5):",
+      "    img = X_test[i].reshape(28,28)",
+      "    pred = np.argmax(model.predict(X_test[i].reshape(1,784)))",
+      "    true = np.argmax(y_test[i])",
+      "",
+      "    plt.imshow(img, cmap='gray')",
+      "    plt.title(f\"Predicted: {pred}, True: {true}\")",
+      "    plt.show()"
+    ],
+    "description": "Visualize model predictions"
+  },
+
+  "predictsingle": {
+    "prefix": "!~@pred",
+    "body": [
+      "pred = np.argmax(model.predict(X_test[i].reshape(1,784)))",
+      "print(\"Predicted:\", pred)"
+    ],
+    "description": "Predict single image"
+  },
+
+  "showimage": {
+    "prefix": "!~@img",
+    "body": [
+      "img = X_test[i].reshape(28,28)",
+      "plt.imshow(img, cmap='gray')",
+      "plt.show()"
+    ],
+    "description": "Display MNIST image"
+  },
+
+  "showtitle": {
+    "prefix": "!~@title",
+    "body": [
+      "true = np.argmax(y_test[i])",
+      "plt.title(f\"Predicted: {pred}, True: {true}\")"
+    ],
+    "description": "Show prediction title"
+  }
+}
